@@ -1,0 +1,27 @@
+[
+{
+  "directory": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"R\\\"(/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/data)\\\"\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext/stb\"  -Wall -Wextra -Wno-unused-parameter -Wno-ignored-attributes -Wno-gnu-anonymous-struct -Wno-c99-extensions -Wno-nested-anon-types -Wno-deprecated-register -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -std=c++11 -o CMakeFiles/final_project.dir/src/final_project_main.cpp.o -c \"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/final_project_main.cpp\"",
+  "file": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/final_project_main.cpp"
+},
+{
+  "directory": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"R\\\"(/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/data)\\\"\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext/stb\"  -Wall -Wextra -Wno-unused-parameter -Wno-ignored-attributes -Wno-gnu-anonymous-struct -Wno-c99-extensions -Wno-nested-anon-types -Wno-deprecated-register -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -std=c++11 -o CMakeFiles/final_project.dir/src/hdr.cpp.o -c \"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/hdr.cpp\"",
+  "file": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/hdr.cpp"
+},
+{
+  "directory": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"R\\\"(/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/data)\\\"\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext/stb\"  -Wall -Wextra -Wno-unused-parameter -Wno-ignored-attributes -Wno-gnu-anonymous-struct -Wno-c99-extensions -Wno-nested-anon-types -Wno-deprecated-register -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -std=c++11 -o CMakeFiles/final_project.dir/src/filtering.cpp.o -c \"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/filtering.cpp\"",
+  "file": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/filtering.cpp"
+},
+{
+  "directory": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"R\\\"(/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/data)\\\"\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext/stb\"  -Wall -Wextra -Wno-unused-parameter -Wno-ignored-attributes -Wno-gnu-anonymous-struct -Wno-c99-extensions -Wno-nested-anon-types -Wno-deprecated-register -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -std=c++11 -o CMakeFiles/final_project.dir/src/a2.cpp.o -c \"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/a2.cpp\"",
+  "file": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/a2.cpp"
+},
+{
+  "directory": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"R\\\"(/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/data)\\\"\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext\" -I\"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/ext/stb\"  -Wall -Wextra -Wno-unused-parameter -Wno-ignored-attributes -Wno-gnu-anonymous-struct -Wno-c99-extensions -Wno-nested-anon-types -Wno-deprecated-register -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -std=c++11 -o CMakeFiles/common_lib.dir/src/floatimage.cpp.o -c \"/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/floatimage.cpp\"",
+  "file": "/Users/Zhiyu/Desktop/Computational Photography/Assignments/final/final project/src/floatimage.cpp"
+}
+]
