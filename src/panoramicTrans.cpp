@@ -15,12 +15,12 @@ FloatImage sphere2Latlong(const FloatImage &im)
         {
             for (int c = 0; c < output.channels(); c++)
             {
-                double phis = -(1 - (double)i / im.width()) * M_PI;
-                double thetas = ((double)j / im.height() - 1) * M_PI;
+                double phis = ((double)i / im.width()) * M_PI;
+                double thetas = ((double)j / im.height()) * M_PI;
                 //get the reflection vector
-                float R_x = -cos(thetas);
-                float R_y = sin(thetas) * cos(0.5 * M_PI - phis);
-                float R_z = -sin(thetas) * sin(0.5 * M_PI - phis);
+                float R_x = cos(thetas);
+                float R_y = sin(thetas) * sin(phis);
+                float R_z = -sin(thetas) * cos(phis);
                 //the view direction is(0,0,1)
                 float V_x = 0.0;
                 float V_y = 0.0;
