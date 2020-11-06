@@ -31,7 +31,7 @@ add_library(common_lib STATIC
 )
 SOURCE_GROUP("src\\ext\\stb" FILES ${ext_stb_srcs})
 
-set(final_project_srcs    src/final_project_main.cpp src/hdr.cpp src/filtering.cpp src/a2.cpp)    # final_project
+set(final_project_srcs    src/final_project_main.cpp src/hdr.cpp src/filtering.cpp src/a2.cpp src/panoramicTrans.cpp)    # final_project
 add_executable(final_project ${final_project_srcs})                                               # final_project
 target_link_libraries(final_project common_lib)                                        # final_project
 SOURCE_GROUP("src" FILES ${final_project_srcs})                                        # final_project
