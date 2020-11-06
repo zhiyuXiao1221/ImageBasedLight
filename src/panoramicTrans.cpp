@@ -5,19 +5,9 @@
 #include <math.h>
 #include <algorithm>
 using namespace std;
-FloatImage computeXY(const FloatImage &im)
-{
-    //get the square image
-    int width = im.width();
-    float radius = (float)width / 2.0;
-    //Translate the position
-    // int x0 = i - im.width() / 2;
-    // int y0 = -j + im.height() / 2;
-};
 FloatImage sphere2Latlong(const FloatImage &im)
 {
     float radius = (float)im.width() / 2.0;
-    float factor = (float)im.width() / M_PI;
     FloatImage output(2 * im.width(), im.height(), im.channels());
     for (int i = 0; i < output.width(); i++)
     {
@@ -25,27 +15,29 @@ FloatImage sphere2Latlong(const FloatImage &im)
         {
             for (int c = 0; c < output.channels(); c++)
             {
-                double phis = (float)j / factor;
-                double thetas = (float)j / factor;
+                double phis = -(1 - (double)i / im.width()) * M_PI;
+                double thetas = ((double)j / im.height() - 1) * M_PI;
                 //get the reflection vector
-                float R_x = sin(thetas) * cos(phis);
-                float R_y = sin(thetas) * sin(phis);
-                float R_z = cos(thetas);
+                float R_x = -cos(thetas);
+                float R_y = sin(thetas) * cos(0.5 * M_PI - phis);
+                float R_z = -sin(thetas) * sin(0.5 * M_PI - phis);
                 //the view direction is(0,0,1)
                 float V_x = 0.0;
                 float V_y = 0.0;
                 float V_z = 1.0;
                 //get the normal vector
-                float N_x = V_x + R_x;
-                float N_y = V_y + R_y;
-                float N_z = V_z + R_z;
+                float N_x = V_x - R_x;
+                float N_y = V_y - R_y;
+                float N_z = V_z - R_z;
                 //standalize the normal vector
                 float N_length = sqrt(N_x * N_x + N_y * N_y + N_z * N_z);
                 N_x /= N_length;
                 N_y /= N_length;
                 N_z /= N_length;
-                //now get the original x and original y
-                output(i, j, c) = interpolateLin(im, N_x, N_y, c, true);
+                // now get the original x and original y
+                float x_origin = (N_y + 1) * radius;
+                float y_origin = (N_x + 1) * radius;
+                output(i, j, c) = interpolateLin(im, x_origin, y_origin, c, true);
             }
         }
     }
@@ -53,7 +45,6 @@ FloatImage sphere2Latlong(const FloatImage &im)
 };
 float interpolateLin(const FloatImage &im, float x, float y, int z, bool clamp)
 {
-    // Hint: use smartAccessor() to handle coordinates outside the image
     //get the 4 neighboring pixels
     float p_00 = im.smartAccessor(floor(x), floor(y), z, clamp);
     float p_01 = im.smartAccessor(ceil(x), floor(y), z, clamp);
