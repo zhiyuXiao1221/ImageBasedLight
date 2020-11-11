@@ -8,9 +8,9 @@ using namespace std;
 //testPanoramicTrans
 void testPanoramicTrans()
 {
-	const FloatImage im(DATA_DIR "/input/final_project/test1.png");
+	const FloatImage im(DATA_DIR "/input/final_project/indoor/indoor_sphere/4.png");
 	FloatImage output = sphere2Latlong(im);
-	output.write(DATA_DIR "/output/test1Result.png");
+	output.write(DATA_DIR "/output/test2Result.png");
 }
 int main()
 {
