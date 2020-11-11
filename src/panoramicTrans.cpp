@@ -59,3 +59,13 @@ float interpolateLin(const FloatImage &im, float x, float y, int z, bool clamp)
     //return final float value
     return lerp_3;
 }
+
+FloatImage composite(const FloatImage &scene, const FloatImage &mask, const FloatImage &withObj, const FloatImage &withoutObj, const float c)
+{
+    FloatImage output(scene.width(), scene.height(), scene.channels());
+    for (int i = 0; i < output.size(); i++)
+    {
+        output(i) = mask(i) * withObj(i) + (1.0 - mask(i)) * scene(i) + (1.0 - mask(i)) * (withObj(i) - withoutObj(i)) * c;
+    }
+    return output;
+}
