@@ -40,7 +40,7 @@ void testCompositing()
 		count++;
 	}
 }
-void testFastBalateral()
+void testFastBilateral()
 {
 	FloatImage im(DATA_DIR "/input/final_project/Cambridge2.png");
 	Timer timer;
@@ -48,28 +48,29 @@ void testFastBalateral()
 	//Different downsample size
 	//The bigger the sample size, the faster the time, but the courser the image
 
-	// When sampleD =1, took 16.88900 seconds
-	// When sampleD =2, took 4.30800 seconds
-	// When sampleD =4,  took 1.20200 seconds
-	// When sampleD =8,  took 0.48600 seconds
+	// When sampleD =1, took 3.93000 seconds
+	// When sampleD =2, took 1.10800 seconds
+	// When sampleD =4,  took 0.33700 seconds
+	// When sampleD =8,  took 0.16300 seconds
+	// When sampleD =16, took 0.11700 seconds
 
-	FloatImage fastBilateral1 = fastBilateral(im, 5, 0.1, 16.0, 1.0, 0.05);
+	FloatImage fastBilateral1 = fastBilateral(im, 0.1, 1.0, 3, 1.0, 0.05);
 	printf("When sampleD =1, took %3.5f seconds\n", timer.elapsed() / 1000.f);
 
 	timer.reset();
-	FloatImage fastBilateral2 = fastBilateral(im, 5, 0.1, 16.0, 2.0, 0.05);
+	FloatImage fastBilateral2 = fastBilateral(im, 0.1, 1.0, 3, 2.0, 0.05);
 	printf("When sampleD =2, took %3.5f seconds\n", timer.elapsed() / 1000.f);
 
 	timer.reset();
-	FloatImage fastBilateral3 = fastBilateral(im, 5, 0.1, 16.0, 4.0, 0.05);
+	FloatImage fastBilateral3 = fastBilateral(im, 0.1, 1.0, 3, 4.0, 0.05);
 	printf("When sampleD =4,  took %3.5f seconds\n", timer.elapsed() / 1000.f);
 
 	timer.reset();
-	FloatImage fastBilateral4 = fastBilateral(im, 5, 0.1, 16.0, 8.0, 0.05);
+	FloatImage fastBilateral4 = fastBilateral(im, 0.1, 1.0, 3, 8.0, 0.05);
 	printf("When sampleD =8,  took %3.5f seconds\n", timer.elapsed() / 1000.f);
 
 	timer.reset();
-	FloatImage fastBilateral5 = fastBilateral(im, 5, 0.1, 16.0, 16.0, 0.05);
+	FloatImage fastBilateral5 = fastBilateral(im, 0.1, 1.0, 3, 16.0, 0.05);
 	printf("When sampleD =16, took %3.5f seconds\n", timer.elapsed() / 1000.f);
 
 	fastBilateral1.write(DATA_DIR "/output/fastBilateralResults/fastBilateral1.png");
@@ -78,10 +79,27 @@ void testFastBalateral()
 	fastBilateral4.write(DATA_DIR "/output/fastBilateralResults/fastBilateral4.png");
 	fastBilateral5.write(DATA_DIR "/output/fastBilateralResults/fastBilateral5.png");
 }
+void CompareTwoBilateral()
+{
+	// 	Fast bilateral took 1.29800 seconds
+	// Bilateral took 4.61200 seconds
+	Timer timer;
+	timer.reset();
+	FloatImage im(DATA_DIR "/input/final_project/Cambridge2.png");
+	FloatImage fastBilateral1 = fastBilateral(im, 0.1, 1.0, 3, 2.0, 0.05);
+	printf("Fast bilateral took %3.5f seconds\n", timer.elapsed() / 1000.f);
+	fastBilateral1.write(DATA_DIR "/output/fastBilateralResults/Compare_fastBilateral_noDownsample.png");
+	// Perform bilaterial filtering on an RGB image
+	timer.reset();
+	FloatImage rgbBilatIm = bilateral(im);
+	rgbBilatIm.write(DATA_DIR "/output/fastBilateralResults/Compare_Bilateral.png");
+	printf("Bilateral took %3.5f seconds\n", timer.elapsed() / 1000.f);
+}
 
 int main()
 {
 	//testPanoramicTrans();
 	//testCompositing();
-	testFastBalateral();
+	//testFastBilateral();
+	CompareTwoBilateral();
 }
