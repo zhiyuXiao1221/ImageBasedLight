@@ -22,6 +22,7 @@ set(common_srcs
     src/floatimage.cpp
     src/floatimage.h
     src/utils.h
+    src/array.h
 )
 
 # Compile common library

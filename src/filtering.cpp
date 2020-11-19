@@ -19,13 +19,14 @@
 #include "filtering.h"
 #include "a2.h"
 #include <math.h>
+#include "array.h"
+#include "util.h"
 
 using namespace std;
 
 /**************************************************************
  //            IMAGE CONVOLUTION AND FILTERING               //
  *************************************************************/
-
 
 // convolve an image with a box filter of size k by k
 FloatImage boxBlur(const FloatImage &im, const int &k, bool clamp)
@@ -199,7 +200,6 @@ FloatImage gaussianBlur_seperable(const FloatImage &im, float sigma, float trunc
 
 	return imFilter;
 }
-
 // sharpen an image
 FloatImage unsharpMask(const FloatImage &im, float sigma, float truncate, float strength, bool clamp)
 {
@@ -243,21 +243,17 @@ FloatImage bilateral(const FloatImage &im, float sigmaRange, float sigmaDomain, 
 						for (int z1 = 0; z1 < imFilter.channels(); z1++)
 						{
 							factorRangeExp +=
-								pow(im.smartAccessor(x + xFilter - offset, y + yFilter - offset, z1, clamp)
-									    - im.smartAccessor(x, y, z1, clamp), 2);
+								pow(im.smartAccessor(x + xFilter - offset, y + yFilter - offset, z1, clamp) - im.smartAccessor(x, y, z1, clamp), 2);
 						}
 
 						// calculate the exonentiated weighting factor from the domain and range
 						factorDomain =
 							exp(-(pow(xFilter - offset, 2) + pow(yFilter - offset, 2)) / (2.0 * pow(sigmaDomain, 2)));
-						factorRange = exp(-factorRangeExp / (2.0 * pow
-							(sigmaRange, 2)));
+						factorRange = exp(-factorRangeExp / (2.0 * pow(sigmaRange, 2)));
 
 						// increase the normalizer by the weighting amount
 						normalizer += factorDomain * factorRange;
-						sumVal += factorDomain * factorRange
-							* im.smartAccessor(x + xFilter - offset, y + yFilter - offset, z, clamp);
-
+						sumVal += factorDomain * factorRange * im.smartAccessor(x + xFilter - offset, y + yFilter - offset, z, clamp);
 					}
 				}
 
@@ -269,10 +265,278 @@ FloatImage bilateral(const FloatImage &im, float sigmaRange, float sigmaDomain, 
 
 	return imFilter;
 }
+//Our implementing mathod
+FloatImage fastBilateral_singleChannel(const FloatImage &im, int channel, float sigmaRange, float sigmaDomain, float samplingD, float samplingR)
+{
+	FloatImage output(im.width(), im.height(), im.channels());
+	//downsample
+	int width = im.width();
+	int height = im.height();
+	float sigma_r = sigmaRange / samplingR;
+	float sigma_s = sigmaDomain / samplingD;
+	int padding_xy = 2 * sigma_s + 1;
+	int padding_z = 2 * sigma_r + 1;
+	float im_Min = im(0, 0, channel);
+	float im_Max = im(0, 0, channel);
+	for (int i = 0; i < width; i++)
+	{
+		for (int j = 0; j < height; j++)
+		{
+			if (im(i, j, channel) < im_Min)
+				im_Min = im(i, j, channel);
+			if (im(i, j, channel) > im_Max)
+				im_Max = im(i, j, channel);
+		}
+	}
 
+	float im_delta = im_Max - im_Min;
+
+	int downSample_width = ((width - 1) / samplingD) + 1 + 2 * padding_xy;
+	int downSample_height = ((height - 1) / samplingD) + 1 + 2 * padding_xy;
+	int downSample_depth = (im_delta / samplingR) + 1 + 2 * padding_z;
+	Array_3D<float> w(downSample_width, downSample_height, downSample_depth, 0.0);
+	Array_3D<float> iw(downSample_width, downSample_height, downSample_depth, 0.0);
+
+	for (int i = 0; i < width; i++)
+	{
+		for (int j = 0; j < height; j++)
+		{
+			int downSample_x = (1.0 * i / samplingD + 0.5) + padding_xy;
+			int downSample_y = (1.0 * j / samplingD + 0.5) + padding_xy;
+			int downSample_z = ((im(i, j, channel) - im_Min) / samplingR + 0.5) + padding_z;
+
+			w(downSample_x, downSample_y, downSample_z) += 1.0;
+			iw(downSample_x, downSample_y, downSample_z) += im(i, j, channel);
+		}
+	}
+
+	int half_width = downSample_width / 2;
+	int half_height = downSample_height / 2;
+	int half_depth = downSample_depth / 2;
+	Array_3D<float> kernel(downSample_width, downSample_height, downSample_depth, 0.0);
+	float sumVal = 0.0;
+	for (int i = 0; i < downSample_width; i++)
+	{
+		float X = (i) - ((i > half_width) ? downSample_width : 0.0);
+		for (int j = 0; j < downSample_height; j++)
+		{
+			float Y = (j) - ((j > half_height) ? downSample_height : 0.0);
+			for (int k = 0; k < downSample_depth; k++)
+			{
+				//sumVal = 0.0;
+				float Z = (k) - ((k > half_depth) ? downSample_depth : 0.0);
+				float rr = (X * X + Y * Y) / (sigma_s * sigma_s) + Z * Z / (sigma_r * sigma_r);
+				kernel(i, j, k) = exp(-rr * 0.5);
+				sumVal += exp(-rr * 0.5);
+			}
+		}
+	}
+	//normalize the weights
+	for (int i = 0; i < downSample_width; i++)
+	{
+		for (int j = 0; j < downSample_height; j++)
+		{
+			for (int k = 0; k < downSample_depth; k++)
+			{
+				kernel(i, j, k) /= sumVal;
+			}
+		}
+	}
+
+	//Convolve both iw and w
+	for (int i = padding_xy; i < downSample_width - padding_xy; i++)
+	{
+		for (int j = padding_xy; j < downSample_height - padding_xy; j++)
+		{
+			for (int k = padding_z; k < downSample_depth - padding_z; k++)
+			{
+				int minX = i - padding_xy;
+				int minY = j - padding_xy;
+				int minZ = k - padding_z;
+				float val1 = 0.0, val2 = 0.0;
+				for (int m = padding_xy; m < downSample_width - padding_xy; m++)
+				{
+					for (int n = padding_xy; n < downSample_height - padding_xy; n++)
+					{
+						for (int p = padding_z; p < downSample_depth - padding_z; p++)
+						{
+							val1 += kernel(m, n, p) * iw(minX + m, minY + n, minZ + p);
+							val2 += kernel(m, n, p) * w(minX + m, minY + n, minZ + p);
+						}
+					}
+				}
+				iw(i, j, k) = val1;
+				w(i, j, k) = val2;
+			}
+		}
+	}
+	//triliner interpolation
+	for (int i = 0; i < width; i++)
+	{
+		for (int j = 0; j < height; j++)
+		{
+			float z = im(i, j, channel) - im_Min;
+			float IW = trilinear_interpolation(iw, i / samplingD + padding_xy, j / samplingD + padding_xy, z / samplingR + padding_z);
+			float W = trilinear_interpolation(w, i / samplingD + padding_xy, j / samplingD + padding_xy, z / samplingR + padding_z);
+			output(i, j, channel) = IW / (W + exp(-10));
+		}
+	}
+	return output;
+}
+// Fast bilateral based on a truncated kernel
+// In implementing this method, we used the following information:
+// http://people.csail.mit.edu/sparis/publi/2006/tr/Paris_06_Fast_Bilateral_Filter_MIT_TR_low-res.pdf
+//http://people.csail.mit.edu/sparis/bf/#code
+FloatImage fastBilateral(const FloatImage &im, int kernelSize, float sigmaRange, float sigmaDomain, float samplingD, float samplingR)
+{
+	FloatImage output(im.width(), im.height(), im.channels());
+	//Step1:Downsample
+	int width = im.width();
+	int height = im.height();
+	float sigma_r = sigmaRange / samplingR;
+	float sigma_s = sigmaDomain / samplingD;
+	int padding_xy = (kernelSize - 1) / 2;
+	int padding_z = padding_xy;
+	for (int channel = 0; channel < im.channels(); channel++)
+	{
+		float im_Min = im(0, 0, channel);
+		float im_Max = im(0, 0, channel);
+		for (int i = 0; i < width; i++)
+		{
+			for (int j = 0; j < height; j++)
+			{
+				if (im(i, j, channel) < im_Min)
+					im_Min = im(i, j, channel);
+				if (im(i, j, channel) > im_Max)
+					im_Max = im(i, j, channel);
+			}
+		}
+		float im_delta = im_Max - im_Min;
+		int downSample_width = ((width - 1) / samplingD) + 1 + 2 * padding_xy;
+		int downSample_height = ((height - 1) / samplingD) + 1 + 2 * padding_xy;
+		int downSample_depth = (im_delta / samplingR) + 1 + 2 * padding_z;
+		Array_3D<float> w(downSample_width, downSample_height, downSample_depth, 0.0);
+		Array_3D<float> iw(downSample_width, downSample_height, downSample_depth, 0.0);
+		for (int i = 0; i < width; i++)
+		{
+			for (int j = 0; j < height; j++)
+			{
+				int downSample_x = (1.0 * i / samplingD + 0.5) + padding_xy;
+				int downSample_y = (1.0 * j / samplingD + 0.5) + padding_xy;
+				int downSample_z = ((im(i, j, channel) - im_Min) / samplingR + 0.5) + padding_z;
+
+				w(downSample_x, downSample_y, downSample_z) += 1.0;
+				iw(downSample_x, downSample_y, downSample_z) += im(i, j, channel);
+			}
+		}
+		Array_3D<float> kernel(kernelSize, kernelSize, kernelSize, 0.0);
+		//get the midpoint coordinate of kernel
+		int mid = (kernelSize - 1) / 2;
+		float sumVal = 0.0;
+		for (int i = 0; i < kernelSize; i++)
+		{
+			for (int j = 0; j < kernelSize; j++)
+			{
+				for (int k = 0; k < kernelSize; k++)
+				{
+					float rr = pow(i - mid, 2) / pow(sigma_s, 2) + pow(j - mid, 2) / pow(sigma_s, 2) + pow(k - mid, 2) / pow(sigma_r, 2);
+					kernel(i, j, k) = exp(-rr * 0.5);
+					sumVal += exp(-rr * 0.5);
+				}
+			}
+		}
+		//normalize the weights
+		for (int i = 0; i < kernelSize; i++)
+		{
+			for (int j = 0; j < kernelSize; j++)
+			{
+				for (int k = 0; k < kernelSize; k++)
+				{
+					kernel(i, j, k) /= sumVal;
+				}
+			}
+		}
+		//Step2: Three-dimensional convolution
+		//Convolve both iw and w
+		for (int i = padding_xy; i < downSample_width - padding_xy; i++)
+		{
+			for (int j = padding_xy; j < downSample_height - padding_xy; j++)
+			{
+				for (int k = padding_z; k < downSample_depth - padding_z; k++)
+				{
+					int minX = i - padding_xy;
+					int minY = j - padding_xy;
+					int minZ = k - padding_z;
+					float val1 = 0.0, val2 = 0.0;
+					for (int m = 0; m < kernelSize; m++)
+					{
+						for (int n = 0; n < kernelSize; n++)
+						{
+							for (int p = 0; p < kernelSize; p++)
+							{
+								val1 += kernel(m, n, p) * iw(minX + m, minY + n, minZ + p);
+								val2 += kernel(m, n, p) * w(minX + m, minY + n, minZ + p);
+							}
+						}
+					}
+					iw(i, j, k) = val1;
+					w(i, j, k) = val2;
+				}
+			}
+		}
+
+		//Step 3:triliner interpolation
+		for (int i = 0; i < width; i++)
+		{
+			for (int j = 0; j < height; j++)
+			{
+				float z = im(i, j, channel) - im_Min;
+				float IW = trilinear_interpolation(iw, i / samplingD + padding_xy, j / samplingD + padding_xy, z / samplingR + padding_z);
+				float W = trilinear_interpolation(w, i / samplingD + padding_xy, j / samplingD + padding_xy, z / samplingR + padding_z);
+				output(i, j, channel) = IW / (W + exp(-10));
+			}
+		}
+	}
+
+	return output;
+}
+
+float trilinear_interpolation(const Array_3D<float> &array, int x, int y, int z)
+{
+
+	int x_size = array.x_size();
+	int y_size = array.y_size();
+	int z_size = array.z_size();
+
+	int x_index = clamp(0, x_size - 1, x);
+	int xx_index = clamp(0, x_size - 1, x_index + 1);
+
+	int y_index = clamp(0, y_size - 1, y);
+	int yy_index = clamp(0, y_size - 1, y_index + 1);
+
+	int z_index = clamp(0, z_size - 1, z);
+	int zz_index = clamp(0, z_size - 1, z_index + 1);
+
+	int x_alpha = x - x_index;
+	int y_alpha = y - y_index;
+	int z_alpha = z - z_index;
+
+	return (1.0f - x_alpha) * (1.0f - y_alpha) * (1.0f - z_alpha) * array(x_index, y_index, z_index) +
+		   x_alpha * (1.0f - y_alpha) * (1.0f - z_alpha) * array(xx_index, y_index, z_index) +
+		   (1.0f - x_alpha) * y_alpha * (1.0f - z_alpha) * array(x_index, yy_index, z_index) +
+		   x_alpha * y_alpha * (1.0f - z_alpha) * array(xx_index, yy_index, z_index) +
+		   (1.0f - x_alpha) * (1.0f - y_alpha) * z_alpha * array(x_index, y_index, zz_index) +
+		   x_alpha * (1.0f - y_alpha) * z_alpha * array(xx_index, y_index, zz_index) +
+		   (1.0f - x_alpha) * y_alpha * z_alpha * array(x_index, yy_index, zz_index) +
+		   x_alpha * y_alpha * z_alpha * array(xx_index, yy_index, zz_index);
+}
+float clamp(float min_value, float max_value, float x)
+{
+	return std::max(std::min(x, (max_value)), (min_value));
+}
 // Bilaterial Filter an image seperately for the Y and UV components of an image
 FloatImage bilaYUV(const FloatImage &im, float sigmaRange, float sigmaY, float sigmaUV, float truncateDomain,
-                   bool clamp)
+				   bool clamp)
 {
 	//convert from RGB to YUV
 	FloatImage imYUV = rgb2yuv(im);
@@ -297,11 +561,9 @@ FloatImage bilaYUV(const FloatImage &im, float sigmaRange, float sigmaY, float s
 	return bilRGB;
 }
 
-
 /**************************************************************
  //                 FILTER CLASS FUNCTIONS                  //
  *************************************************************/
-
 
 // write a convolution function for the filter class
 FloatImage Filter::Convolve(const FloatImage &im, bool clamp) const
@@ -325,9 +587,7 @@ FloatImage Filter::Convolve(const FloatImage &im, bool clamp) const
 
 						// sum the image pixel values weighted by the filter
 						// TODO: Give a hint in the document to use operator()(xFilter, yFilter)
-						sumVal += operator()(xFilter, yFilter)
-									* im.smartAccessor(x - xFilter + sideW, y - yFilter + sideH, z, clamp);
-
+						sumVal += operator()(xFilter, yFilter) * im.smartAccessor(x - xFilter + sideW, y - yFilter + sideH, z, clamp);
 					}
 
 				// assign the pixel the value from convolution
@@ -336,7 +596,6 @@ FloatImage Filter::Convolve(const FloatImage &im, bool clamp) const
 
 	return imFilter;
 }
-
 
 /**************************************************************
  //               DON'T EDIT BELOW THIS LINE                //
@@ -364,7 +623,6 @@ Filter::Filter(const vector<float> &fData, const int &fWidth, const int &fHeight
 	kernel = fData;
 	width = fWidth;
 	height = fHeight;
-
 }
 
 Filter::Filter(const int &fWidth, const int &fHeight)

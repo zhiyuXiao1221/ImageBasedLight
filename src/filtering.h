@@ -7,6 +7,7 @@
 #include "floatimage.h"
 #include <iostream>
 #include <math.h>
+#include "array.h"
 
 using namespace std;
 
@@ -55,7 +56,9 @@ FloatImage unsharpMask(const FloatImage &im, float sigma, float truncate = 3.0, 
 // Bilaterial Filtering
 FloatImage bilateral(const FloatImage &im, float sigmaRange = 0.1, float sigmaDomain = 1.0, float truncateDomain = 3.0, bool clamp = true);
 FloatImage bilaYUV(const FloatImage &im, float sigmaRange = 0.1, float sigmaY = 1.0, float sigmaUV = 4.0, float truncateDomain = 3.0, bool clamp = true);
-
+FloatImage fastBilateral(const FloatImage &im, int kernelSize, float sigmaRange, float sigmaDomain, float samplingD, float samplingR);
+float trilinear_interpolation(const Array_3D<float> &array, int x, int y, int z);
+float clamp(float min_value, float max_value, float x);
 // Return impulse image of size kxkx1
 FloatImage impulseImg(const int &k);
 
