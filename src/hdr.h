@@ -6,8 +6,11 @@
 #include "floatimage.h"
 #include <iostream>
 #include <math.h>
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 
 // HDR
+std::vector<Eigen::VectorXf> calibrateCRF(std::vector<FloatImage> &imSeq, std::vector<float> &exposures, float smooth);
 FloatImage computeWeight(const FloatImage &im, float epsilonMini=0.002, float epsilonMaxi=0.99);
 float computeFactor(const FloatImage &im1, const FloatImage &w1, const FloatImage &im2, const FloatImage &w2);
 FloatImage makeHDR(std::vector<FloatImage> &imSeq, float epsilonMini=0.002, float epsilonMaxi=0.99);

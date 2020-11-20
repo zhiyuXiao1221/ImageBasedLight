@@ -1,6 +1,7 @@
 #include "hdr.h"
 #include "panoramicTrans.h"
 #include "a2.h"
+#include "a6.h"
 #include "utils.h"
 #include "filtering.h"
 #include <sstream>
@@ -79,9 +80,43 @@ void testFastBalateral()
 	fastBilateral5.write(DATA_DIR "/output/fastBilateralResults/fastBilateral5.png");
 }
 
+// a function to test scaling
+void testScaling(){
+	// load in the image and print out original size
+	float fact = 0.10;
+	const FloatImage bostonim(DATA_DIR "/input/final_project/Cambridge2.png");
+	printf("Boston image is %dx%dx%d\n", bostonim.width(), bostonim.height(), bostonim.channels());
+
+	// scale using NN interpolation and print the size of the new image
+	FloatImage scaledNN = scaleNN(bostonim, fact);
+	scaledNN.write(DATA_DIR "/output/Cambridge2-scaled-NN.png");
+	printf("Scaled-NN image is %dx%dx%d\n", scaledNN.width(), scaledNN.height(), scaledNN.channels());
+}
+
+// test CRF calculation
+void testCRF(){
+	int nImages = 8;
+	float smooth = 50;
+	vector<FloatImage> imSeq;
+	for (int i = 0; i < nImages; i++)
+	{
+		ostringstream ss;
+		// ss << DATA_DIR "/input/final_project/indoor/" << i << ".jpg";
+		ss << "/home/sb/Desktop/ph5/scene-" << i << ".png";
+		string filename = ss.str();
+		imSeq.push_back(FloatImage(filename));
+	}
+
+	vector<float> exposures{1/80., 1/50., 1/15., 1/6., 0.3, 0.8, 2, 4};
+	calibrateCRF(imSeq, exposures, smooth);
+}
+
 int main()
 {
 	//testPanoramicTrans();
 	//testCompositing();
-	testFastBalateral();
+	// testFastBalateral();
+	// try { testScaling(); }        catch(...) {cout << "testScaling Failed!" << endl;}
+	testCRF();
+
 }

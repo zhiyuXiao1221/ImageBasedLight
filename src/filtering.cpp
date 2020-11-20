@@ -20,7 +20,7 @@
 #include "a2.h"
 #include <math.h>
 #include "array.h"
-#include "util.h"
+#include "utils.h"
 
 using namespace std;
 

@@ -1,5 +1,6 @@
 #include "panoramicTrans.h"
 #include "a2.h"
+#include "a6.h"
 #include "utils.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -43,22 +44,22 @@ FloatImage sphere2Latlong(const FloatImage &im)
     }
     return output;
 };
-float interpolateLin(const FloatImage &im, float x, float y, int z, bool clamp)
-{
-    //get the 4 neighboring pixels
-    float p_00 = im.smartAccessor(floor(x), floor(y), z, clamp);
-    float p_01 = im.smartAccessor(ceil(x), floor(y), z, clamp);
-    float p_10 = im.smartAccessor(floor(x), ceil(y), z, clamp);
-    float p_11 = im.smartAccessor(ceil(x), ceil(y), z, clamp);
-    float x_dis = x - floor(x);
-    float y_dis = y - floor(y);
-    //lerp
-    float lerp_1 = p_00 + (p_01 - p_00) * x_dis;
-    float lerp_2 = p_10 + (p_11 - p_10) * x_dis;
-    float lerp_3 = lerp_1 + (lerp_2 - lerp_1) * y_dis;
-    //return final float value
-    return lerp_3;
-}
+// float interpolateLin(const FloatImage &im, float x, float y, int z, bool clamp)
+// {
+//     //get the 4 neighboring pixels
+//     float p_00 = im.smartAccessor(floor(x), floor(y), z, clamp);
+//     float p_01 = im.smartAccessor(ceil(x), floor(y), z, clamp);
+//     float p_10 = im.smartAccessor(floor(x), ceil(y), z, clamp);
+//     float p_11 = im.smartAccessor(ceil(x), ceil(y), z, clamp);
+//     float x_dis = x - floor(x);
+//     float y_dis = y - floor(y);
+//     //lerp
+//     float lerp_1 = p_00 + (p_01 - p_00) * x_dis;
+//     float lerp_2 = p_10 + (p_11 - p_10) * x_dis;
+//     float lerp_3 = lerp_1 + (lerp_2 - lerp_1) * y_dis;
+//     //return final float value
+//     return lerp_3;
+// }
 
 FloatImage composite(const FloatImage &scene, const FloatImage &mask, const FloatImage &withObj, const FloatImage &withoutObj, const float c)
 {

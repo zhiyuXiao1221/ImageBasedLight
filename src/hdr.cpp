@@ -5,15 +5,105 @@
 #include "hdr.h"
 #include "filtering.h"
 #include "a2.h"
+#include "a6.h"
 #include "utils.h"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 #include <math.h>
 #include <algorithm>
+#include<fstream>
 
 using namespace std;
+using namespace Eigen;
 
 /**************************************************************
  //                       HDR MERGING                        //
  *************************************************************/
+
+// get intensity weight
+float w(float z){
+	return z > 127 ? 255 - z : z - 0;
+}
+
+const static IOFormat CSVFormat(StreamPrecision, DontAlignCols, ", ", "\n");
+void writeToCSVfile(string name, MatrixXf matrix)
+{
+    ofstream file(name.c_str());
+    file << matrix.format(CSVFormat);
+}
+
+// calculate CRF
+vector<VectorXf> calibrateCRF(vector<FloatImage> &imSeq, vector<float> &exposures, float smooth)
+ {
+	 vector<float> times;
+	 vector<FloatImage> scaledSeq;
+	 vector<VectorXf> crfs;
+	 float fact = 0.01;
+	 for (int i = 0; i < (int)imSeq.size(); i++){
+		// downsample images
+		scaledSeq.push_back(scaleNN(imSeq[i], fact));
+		// scaledSeq.push_back(imSeq[i]);
+		// log exposures
+		times.push_back(log2(exposures[i]));
+	}
+	
+	int pixelSize = scaledSeq[0].height() * scaledSeq[0].width();
+	cout << "pixel size = " << pixelSize << endl;
+
+	MatrixXf A(scaledSeq.size() * pixelSize + 256, 256 + pixelSize);
+	VectorXf b(scaledSeq.size() * pixelSize + 256), x;
+	cout << "size of A = " << A.rows() << ", " << A.cols() << endl;
+
+	for (int z = 0; z < scaledSeq[0].channels(); z++){ // loop through all channels
+
+		A.setZero();
+		b.setZero();	
+		int row = 0;
+
+		for (int i = 0; i < (int)scaledSeq.size(); i++){
+			for (int iy = 0; iy < scaledSeq[0].height(); iy++){
+				for (int ix = 0; ix < scaledSeq[0].width(); ix++){
+					
+					// get pixel intensity
+					float Z = floor(scaledSeq[i](ix, iy, z) * 255);
+
+					A(row, Z) = w(Z);
+					A(row, 256+iy*scaledSeq[0].width()+ix) = -w(Z);
+					b[row] = w(Z) * times[i];
+
+					row += 1;
+					
+				}		
+			}
+		}
+
+		A(row, 127) = 1; // set f^-1(Z_mid) = 1
+		row += 1;
+
+		for (int p = 0; p < 255; p++){
+			A(row, p) = smooth * w(p+1);
+			A(row, p+1) = -2 * smooth * w(p+1);
+			A(row, p+2) = smooth * w(p+1);
+			// if (row >= 446 && row < 450) cout << row << " " << p+1  << " " << smooth * w(p+1) << endl;
+			
+			row += 1;
+			
+		}
+
+		// writeToCSVfile(DATA_DIR "/output/A" + to_string(z) + ".csv", A);
+		// writeToCSVfile(DATA_DIR "/output/b" + to_string(z) + ".csv", b);
+		
+		x = A.bdcSvd(ComputeThinU | ComputeThinV).solve(b); // solve equation
+		double relative_error = (A*x - b).norm() / b.norm(); // norm() is L2 norm
+   		cout << "The relative error is:\n" << relative_error << endl;
+		
+		x = x.head(256);
+		crfs.push_back(x);
+		// IOFormat CommaInitFmt(StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";");
+		// cout << x.format(CommaInitFmt) << endl;
+	}
+	return crfs;
+ }
 
 // Generate a weight image that indicates which pixels are good to use in hdr
 FloatImage computeWeight(const FloatImage &im, float epsilonMini, float epsilonMaxi)
