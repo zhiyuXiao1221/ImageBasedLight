@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "filtering.h"
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -108,7 +109,14 @@ void testCRF(){
 	}
 
 	vector<float> exposures{1/80., 1/50., 1/15., 1/6., 0.3, 0.8, 2, 4};
-	calibrateCRF(imSeq, exposures, smooth);
+	// calibrateCRF(imSeq, exposures, smooth);
+
+	vector<FloatImage> sampled = sampleFromHist(imSeq);
+	// for (int i = 0; i < nImages; i++){
+	// 	sampled[i].write(DATA_DIR "/output/hist-" + to_string(i) + ".png");
+	// }
+	calibrateCRF(sampled, exposures, smooth);
+
 }
 
 int main()

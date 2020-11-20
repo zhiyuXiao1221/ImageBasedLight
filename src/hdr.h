@@ -10,6 +10,8 @@
 #include "Eigen/Sparse"
 
 // HDR
+std::vector<FloatImage> sampleDown(std::vector<FloatImage> &imSeq, float fact);
+std::vector<FloatImage> sampleFromHist(std::vector<FloatImage> &imSeq);
 std::vector<Eigen::VectorXf> calibrateCRF(std::vector<FloatImage> &imSeq, std::vector<float> &exposures, float smooth);
 FloatImage computeWeight(const FloatImage &im, float epsilonMini=0.002, float epsilonMaxi=0.99);
 float computeFactor(const FloatImage &im1, const FloatImage &w1, const FloatImage &im2, const FloatImage &w2);
