@@ -42,17 +42,17 @@ void testCompositing()
 }
 void testFastBilateral()
 {
-	FloatImage im(DATA_DIR "/input/final_project/Cambridge2.png");
+	FloatImage im(DATA_DIR "/input/final_project/lens-3-med.png");
 	Timer timer;
 	timer.reset();
 	//Different downsample size
 	//The bigger the sample size, the faster the time, but the courser the image
 
-	// When sampleD =1, took 3.93000 seconds
-	// When sampleD =2, took 1.10800 seconds
-	// When sampleD =4,  took 0.33700 seconds
-	// When sampleD =8,  took 0.16300 seconds
-	// When sampleD =16, took 0.11700 seconds
+	// When sampleD =1, took 2.80500 seconds
+	// When sampleD =2, took 0.98400 seconds
+	// When sampleD =4,  took 0.57900 seconds
+	// When sampleD =8,  took 0.10000 seconds
+	// When sampleD =16, took 0.06900 seconds
 
 	FloatImage fastBilateral1 = fastBilateral(im, 0.1, 1.0, 3, 1.0, 0.05);
 	printf("When sampleD =1, took %3.5f seconds\n", timer.elapsed() / 1000.f);
@@ -81,11 +81,11 @@ void testFastBilateral()
 }
 void CompareTwoBilateral()
 {
-	// 	Fast bilateral took 1.29800 seconds
-	// Bilateral took 4.61200 seconds
+	// 	Fast bilateral took 1.15200 seconds
+	// Bilateral took 2.58000 seconds
 	Timer timer;
 	timer.reset();
-	FloatImage im(DATA_DIR "/input/final_project/Cambridge2.png");
+	FloatImage im(DATA_DIR "/input/final_project/lens-3-med.png");
 	FloatImage fastBilateral1 = fastBilateral(im, 0.1, 1.0, 3, 2.0, 0.05);
 	printf("Fast bilateral took %3.5f seconds\n", timer.elapsed() / 1000.f);
 	fastBilateral1.write(DATA_DIR "/output/fastBilateralResults/Compare_fastBilateral_noDownsample.png");
@@ -119,7 +119,7 @@ int main()
 {
 	//testPanoramicTrans();
 	//testCompositing();
-	testFastBilateral();
-	//CompareTwoBilateral();
+	//testFastBilateral();
+	CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
 }
