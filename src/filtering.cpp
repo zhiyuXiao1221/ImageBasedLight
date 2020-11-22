@@ -393,14 +393,14 @@ float trilinear_interpolation(const Array_3D<float> &array, float x, float y, fl
 	int y_size = array.y_size();
 	int z_size = array.z_size();
 
-	float x_index = clamp(0, x_size - 1, x);
-	float xx_index = clamp(0, x_size - 1, x_index + 1);
+	int x_index = clamp(0, x_size - 1, x);
+	int xx_index = clamp(0, x_size - 1, x_index + 1);
 
-	float y_index = clamp(0, y_size - 1, y);
-	float yy_index = clamp(0, y_size - 1, y_index + 1);
+	int y_index = clamp(0, y_size - 1, y);
+	int yy_index = clamp(0, y_size - 1, y_index + 1);
 
-	float z_index = clamp(0, z_size - 1, z);
-	float zz_index = clamp(0, z_size - 1, z_index + 1);
+	int z_index = clamp(0, z_size - 1, z);
+	int zz_index = clamp(0, z_size - 1, z_index + 1);
 
 	float x_alpha = x - x_index;
 	float y_alpha = y - y_index;
@@ -415,7 +415,7 @@ float trilinear_interpolation(const Array_3D<float> &array, float x, float y, fl
 		   (1.0f - x_alpha) * y_alpha * z_alpha * array(x_index, yy_index, zz_index) +
 		   x_alpha * y_alpha * z_alpha * array(xx_index, yy_index, zz_index);
 }
-float clamp(float min_value, float max_value, float x)
+float clamp(int min_value, int max_value, int x)
 {
 	return std::max(std::min(x, (max_value)), (min_value));
 }

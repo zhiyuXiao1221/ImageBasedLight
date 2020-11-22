@@ -58,7 +58,7 @@ FloatImage bilateral(const FloatImage &im, float sigmaRange = 0.1, float sigmaDo
 FloatImage bilaYUV(const FloatImage &im, float sigmaRange = 0.1, float sigmaY = 1.0, float sigmaUV = 4.0, float truncateDomain = 3.0, bool clamp = true);
 FloatImage fastBilateral(const FloatImage &im, float sigmaRange = 0.1, float sigmaDomain = 1.0, int truncateDomain = 5.0, float samplingD = 1.0, float samplingR = 0.05);
 float trilinear_interpolation(const Array_3D<float> &array, float x, float y, float z);
-float clamp(float min_value, float max_value, float x);
+float clamp(int min_value, int max_value, int x);
 // Return impulse image of size kxkx1
 FloatImage impulseImg(const int &k);
 

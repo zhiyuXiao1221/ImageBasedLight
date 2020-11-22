@@ -119,7 +119,7 @@ int main()
 {
 	//testPanoramicTrans();
 	//testCompositing();
-	//testFastBilateral();
+	testFastBilateral();
 	//CompareTwoBilateral();
-	testMakeNaiveHdr_Room();
+	//testMakeNaiveHdr_Room();
 }
