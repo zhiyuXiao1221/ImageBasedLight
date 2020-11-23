@@ -5,7 +5,7 @@
 #include <math.h>
 #include <algorithm>
 using namespace std;
-FloatImage sphere2Latlong(const FloatImage &im)
+FloatImage sphere2Latlong(const FloatImage &im, bool translation)
 {
     float radius = (float)im.width() / 2.0;
     FloatImage output(2 * im.width(), im.height(), im.channels());
@@ -15,12 +15,25 @@ FloatImage sphere2Latlong(const FloatImage &im)
         {
             for (int c = 0; c < output.channels(); c++)
             {
-                double phis = ((double)i / im.width()) * M_PI;
-                double thetas = ((double)j / im.height()) * M_PI;
-                //get the reflection vector
-                float R_x = cos(thetas);
-                float R_y = sin(thetas) * sin(phis);
-                float R_z = -sin(thetas) * cos(phis);
+                double phis, thetas, R_x, R_y, R_z;
+                if (translation)
+                {
+                    phis = (1 - (double)i / im.width()) * M_PI;
+                    thetas = ((double)j / im.height() - 1) * M_PI;
+                    //get the reflection vector
+                    R_x = -cos(thetas);
+                    R_y = sin(thetas) * sin(phis);
+                    R_z = sin(thetas) * cos(phis);
+                }
+                else
+                {
+                    phis = ((double)i / im.width()) * M_PI;
+                    thetas = ((double)j / im.height()) * M_PI;
+                    //get the reflection vector
+                    R_x = cos(thetas);
+                    R_y = sin(thetas) * sin(phis);
+                    R_z = -sin(thetas) * cos(phis);
+                }
                 //the view direction is(0,0,1)
                 float V_x = 0.0;
                 float V_y = 0.0;
@@ -43,6 +56,7 @@ FloatImage sphere2Latlong(const FloatImage &im)
     }
     return output;
 };
+
 float interpolateLin(const FloatImage &im, float x, float y, int z, bool clamp)
 {
     //get the 4 neighboring pixels

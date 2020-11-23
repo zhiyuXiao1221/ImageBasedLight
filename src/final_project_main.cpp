@@ -10,9 +10,11 @@ using namespace std;
 //testPanoramicTrans
 void testPanoramicTrans()
 {
-	const FloatImage im(DATA_DIR "/input/final_project/indoor/indoor_sphere/4.png");
-	FloatImage output = sphere2Latlong(im);
-	output.write(DATA_DIR "/output/test2Result.png");
+	const FloatImage im(DATA_DIR "/output/room-scaledHDR-room1.png");
+	FloatImage output1 = sphere2Latlong(im);
+	output1.write(DATA_DIR "/output/HDR_Latlong/hdr_Latlong.png");
+	FloatImage output2 = sphere2Latlong(im, true);
+	output2.write(DATA_DIR "/output/HDR_Latlong/hdr_Latlong_trans.png");
 }
 
 void testCompositing()
@@ -117,9 +119,9 @@ void testMakeNaiveHdr_Room()
 }
 int main()
 {
-	//testPanoramicTrans();
+	testPanoramicTrans();
 	//testCompositing();
 	//testFastBilateral();
-	CompareTwoBilateral();
+	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
 }
