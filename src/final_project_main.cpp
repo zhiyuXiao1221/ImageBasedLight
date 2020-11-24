@@ -10,24 +10,24 @@ using namespace std;
 //testPanoramicTrans
 void testPanoramicTrans()
 {
-	const FloatImage im(DATA_DIR "/output/room-scaledHDR-room1.png");
+	const FloatImage im(DATA_DIR "/input/final_project/hdr/sphere_hdr_robertson.hdr");
 	FloatImage output1 = sphere2Latlong(im);
-	output1.write(DATA_DIR "/output/HDR_Latlong/hdr_Latlong.png");
+	output1.write(DATA_DIR "/output/HDR_Latlong/robertson.hdr");
 	FloatImage output2 = sphere2Latlong(im, true);
-	output2.write(DATA_DIR "/output/HDR_Latlong/hdr_Latlong_trans.png");
+	output2.write(DATA_DIR "/output/HDR_Latlong/robertson_trans.hdr");
 }
 
 void testCompositing()
 {
-	const FloatImage scene(DATA_DIR "/input/final_project/differentialRendering/scene.png");
-	const FloatImage mask(DATA_DIR "/input/final_project/differentialRendering/mask.png");
-	const FloatImage withObj(DATA_DIR "/input/final_project/differentialRendering/withObjects.png");
-	const FloatImage withoutObj(DATA_DIR "/input/final_project/differentialRendering/withoutObjects.png");
+	const FloatImage scene(DATA_DIR "/input/final_project/differentialRendering/1/bg.png");
+	const FloatImage mask(DATA_DIR "/input/final_project/differentialRendering/1/mask.png");
+	const FloatImage withObj(DATA_DIR "/input/final_project/differentialRendering/1/withObjects.png");
+	const FloatImage withoutObj(DATA_DIR "/input/final_project/differentialRendering/1/withoughtObjts.png");
 
 	// create composite using default c value
 	// c value used for changing shadows and reflection values
 	FloatImage output = composite(scene, mask, withObj, withoutObj, 1.0);
-	output.write(DATA_DIR "/output/testComposite-default.png");
+	output.write(DATA_DIR "/output/Composite-default.png");
 
 	// create composite images with varying c values
 	// images are generated in 0.5 c value step increments
@@ -35,7 +35,7 @@ void testCompositing()
 	for (float i = 0.0; i < 5.0; i += 0.5)
 	{
 		ostringstream ss;
-		ss << DATA_DIR "/output/compositeResults/testComposite-" << count << ".png";
+		ss << DATA_DIR "/output/compositeResults/Composite-" << count << ".png";
 		string filename = ss.str();
 		output = composite(scene, mask, withObj, withoutObj, i);
 		output.write(filename);
@@ -119,8 +119,8 @@ void testMakeNaiveHdr_Room()
 }
 int main()
 {
-	testPanoramicTrans();
-	//testCompositing();
+	//testPanoramicTrans();
+	testCompositing();
 	//testFastBilateral();
 	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
