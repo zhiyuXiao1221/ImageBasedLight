@@ -135,6 +135,22 @@ vector<float> gauss1DFilterValues(float sigma, float truncate)
 	return fData;
 }
 
+// 1D Gaussian for HDR weights
+vector<float> gaussWeights(float mu, float sigma)
+{
+	// calculate the size of the filter
+	int filterSize = 2 * mu + 1;
+
+	vector<float> fData(filterSize, 0);
+
+	for (int i = 0; i < filterSize; i++) // for 0-255 range
+	{
+		fData[i] = 127 * exp(-pow(i - mu, 2) / (2.0 * pow(sigma, 2)));
+	}
+
+	return fData;
+}
+
 // blur across the rows of an image
 FloatImage gaussianBlur_horizontal(const FloatImage &im, float sigma, float truncate, bool clamp)
 {

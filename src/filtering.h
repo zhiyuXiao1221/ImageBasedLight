@@ -49,6 +49,7 @@ vector<float> gauss2DFilterValues(float sigma, float truncate);
 FloatImage gaussianBlur_horizontal(const FloatImage &im, float sigma, float truncate = 3.0, bool clamp = true);
 FloatImage gaussianBlur_seperable(const FloatImage &im, float sigma, float truncate = 3.0, bool clamp = true);
 FloatImage gaussianBlur_2D(const FloatImage &im, float sigma, float truncate = 3.0, bool clamp = true);
+vector<float> gaussWeights(float mu, float sigma);
 
 // Sharpen an FloatImage
 FloatImage unsharpMask(const FloatImage &im, float sigma, float truncate = 3.0, float strength = 1.0, bool clamp = true);
