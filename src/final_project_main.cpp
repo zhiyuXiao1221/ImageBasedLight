@@ -83,8 +83,8 @@ void testFastBilateral()
 }
 void CompareTwoBilateral()
 {
-	// 	Fast bilateral took 1.15200 seconds
-	// Bilateral took 2.58000 seconds
+	// 	Fast bilateral took 0.84500 seconds
+	// Bilateral took 2.76100 seconds
 	Timer timer;
 	timer.reset();
 	FloatImage im(DATA_DIR "/input/final_project/lens-3-med.png");
@@ -120,8 +120,8 @@ void testMakeNaiveHdr_Room()
 int main()
 {
 	//testPanoramicTrans();
-	testCompositing();
-	//testFastBilateral();
+	//testCompositing();
+	testFastBilateral();
 	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
 }
