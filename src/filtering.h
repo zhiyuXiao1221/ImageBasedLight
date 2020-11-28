@@ -63,4 +63,9 @@ float clamp(int min_value, int max_value, int x);
 // Return impulse image of size kxkx1
 FloatImage impulseImg(const int &k);
 
+// Laplacian
+vector<FloatImage> gaussPyramid(const FloatImage &im, int levels);
+vector<FloatImage> laplacianPyramid(const FloatImage &im,  int levels);
+FloatImage localLaplacianFilter(const FloatImage im, int levels, float sigma, float alpha, float beta, int channels);
+
 #endif
