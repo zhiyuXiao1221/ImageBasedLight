@@ -1,11 +1,13 @@
 #include "hdr.h"
 #include "panoramicTrans.h"
 #include "a2.h"
+#include "a6.h"
 #include "utils.h"
 #include "filtering.h"
 #include <sstream>
 
 using namespace std;
+using namespace Eigen;
 
 //testPanoramicTrans
 void testPanoramicTrans()
@@ -117,6 +119,55 @@ void testMakeNaiveHdr_Room()
 	// save out HDR image
 	hdr.write(DATA_DIR "/output/room3-out.hdr");
 }
+
+// test CRF calculation
+void testCRF(){
+	int nImages = 8;
+	float smooth = 100;
+	vector<FloatImage> imSeq;
+	for (int i = 1; i <= nImages; i++)
+	{
+		ostringstream ss;
+		ss << DATA_DIR "/input/final_project/indoor/scene1/Angle1/sphere_" << i << ".jpg";
+		// ss << DATA_DIR "/input/final_project/indoor/scene1/Angle2/sphere_" << i << ".jpg";
+		string filename = ss.str();
+		imSeq.push_back(FloatImage(filename));
+	}
+	
+	vector<float> exposures{1/80., 1/40., 1/20., 1/10., 1/5., 1/2., 0.77, 1.6};
+
+	vector<FloatImage> sampled = sampleFromHist(imSeq);
+	// vector<FloatImage> sampled = sampleDown(imSeq, 0.01);
+	
+	// for (int i = 0; i < nImages; i++){
+	// 	sampled[i].write(DATA_DIR "/output/hist-" + to_string(i) + ".png");
+	
+	vector<VectorXf> crfs = calibrateCRF(sampled, exposures, smooth);
+	FloatImage map = getRadiance(imSeq, exposures, crfs, true);
+	map.write(DATA_DIR "/output/test-hdr.hdr");
+
+	FloatImage scaledNN = scaleNN(map, 0.2);
+	toneMap(scaledNN, 300, 1.5).write(DATA_DIR "/output/test-tonemap.png");
+}
+
+void testLaplacian(){
+	FloatImage im(DATA_DIR "/input/final_project/Cambridge2.png");
+	float levels = 3;
+	float sigma = log(2.5);
+	float alpha = 0.1;
+	float beta = 0;
+	int channels = 3;
+
+	// vector<FloatImage> gPyramid = gaussPyramid(im, levels);
+	// // vector<FloatImage> imSeq = laplacianPyramid(im, levels);
+	// for (int i = 0; i < levels; i++){
+	// 	gPyramid[i].write(DATA_DIR "/output/gauss-" + to_string(i) + ".png");
+	// }
+
+	// localLaplacianFilter(im, levels, sigma, alpha, beta, channels);
+	
+}
+
 int main()
 {
 	//testPanoramicTrans();
@@ -124,4 +175,6 @@ int main()
 	testFastBilateral();
 	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
+	// testCRF();
+	// testLaplacian();
 }

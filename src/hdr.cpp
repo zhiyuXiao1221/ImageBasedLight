@@ -324,6 +324,12 @@ FloatImage toneMap(const FloatImage &im, float targetBase, float detailAmp, bool
 	else
 	{   // normal gaussian filter
 		baselumi = gaussianBlur_seperable(loglumi, sigma);
+		// float levels = 3;
+		// sigma = log(2.5);
+		// float alpha = 1;
+		// float beta = 0;
+		// int channels = 1;
+		// baselumi = localLaplacianFilter(loglumi, levels, sigma, alpha, beta, channels);
 	}
 
 	// compute difference (detail)
@@ -331,16 +337,17 @@ FloatImage toneMap(const FloatImage &im, float targetBase, float detailAmp, bool
 
 	// range
 	float largeRange = baselumi.max() - baselumi.min();
-	float k = log10(targetBase) / largeRange;
+	float k = log10(targetBase) / largeRange * 1.0; // adjust value to scale the luminance
 
 	// final log luminance
 	FloatImage outLog = detail * detailAmp + baselumi * k - baselumi.max() * k;
 
 	// compute image
 	FloatImage finallumi = exp10FloatImage(outLog);
+	// FloatImage finallumi = exp10FloatImage(baselumi);
 
 	// finally, go back finaloglumi+chromi --> rgb
-	FloatImage final = lumiChromi2rgb(finallumi, lc[1]);
+	FloatImage final = lumiChromi2rgb(finallumi, saturate(lc[1], 1.)); // adjust saturation
 
 	// gamma encode 1.0f --> 1/2.2
 	final = changeGamma(final, 1.0f, 1 / 2.2);
