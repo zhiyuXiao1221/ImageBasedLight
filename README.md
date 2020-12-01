@@ -58,10 +58,6 @@ vector<vector<int>> detectCorners(const FloatImage &im, float threshold, int win
 5. OpenGL libraries and code proved to be difficult to merge into main codebase. Additional repository with standalone rendering code can be found [here](https://github.com/ealitt/Scene-Rendering/tree/master).
 6. Corner detection has not been tested with real life markers, only on ideal virtual markers. Further tuning for regional searches in an images would be necessary.
 
-## Additional Materials
-
-Detailed description of some implementations as well as the validation of results can be found in the Google Doc link submitted. Task Division and a more comprehensive list of references can be found in the document as well.  
-
 ## References
 
 1. [Programming Project #4: Image-Based Lighting CS498](https://courses.engr.illinois.edu/cs498dh3/fa2014/projects/ibl/ComputationalPhotography_ProjectIBL.html)
