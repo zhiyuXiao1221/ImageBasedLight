@@ -296,7 +296,7 @@ FloatImage fastBilateral(const FloatImage &im, float sigmaRange, float sigmaDoma
 	//Step1:Downsample
 	int width = im.width();
 	int height = im.height();
-	int kernelSize = int(ceil(truncateDomain * sigmaDomain));
+	int kernelSize = int(ceil(truncateDomain));
 	float sigma_r = sigmaRange / samplingR;
 	float sigma_s = sigmaDomain / samplingD;
 	int padding_xy = (kernelSize - 1) / 2;
@@ -390,6 +390,20 @@ FloatImage fastBilateral(const FloatImage &im, float sigmaRange, float sigmaDoma
 		}
 
 		//Step 3:triliner interpolation
+		// for (int i = 0; i < width; i++)
+		// {
+		// 	for (int j = 0; j < height; j++)
+		// 	{
+		// 		float Z = im(i, j, channel) - im_Min;
+		// 		float x = i / samplingD + padding_xy;
+		// 		float y = j / samplingD + padding_xy;
+		// 		float z = Z / samplingR + padding_z;
+		// 		float IW = trilinear_interpolation(iw, x, y, z);
+		// 		float W = trilinear_interpolation(w, x, y, z);
+		// 		output(i, j, channel) = IW / (W + exp(-10));
+		// 	}
+		// }
+		// don't use trilinear interpolation
 		for (int i = 0; i < width; i++)
 		{
 			for (int j = 0; j < height; j++)
@@ -469,40 +483,46 @@ FloatImage bilaYUV(const FloatImage &im, float sigmaRange, float sigmaY, float s
 }
 
 // create gaussian pyramid
-vector<FloatImage> gaussPyramid(const FloatImage &im, int levels){
+vector<FloatImage> gaussPyramid(const FloatImage &im, int levels)
+{
 	vector<FloatImage> pyramid;
 	pyramid.push_back(im);
 	float fact = 0.5;
-	for (int i = 1; i < levels; i++){
-		pyramid.push_back(scaleNN(gaussianBlur_seperable(pyramid[i-1], 1, 2, true), fact));
+	for (int i = 1; i < levels; i++)
+	{
+		pyramid.push_back(scaleNN(gaussianBlur_seperable(pyramid[i - 1], 1, 2, true), fact));
 	}
 	return pyramid;
 }
 
 // upsample helper
-FloatImage upSample(const FloatImage im, float fact){
-	
+FloatImage upSample(const FloatImage im, float fact)
+{
+
 	vector<FloatImage> large = scaleU(im, fact);
 	// gaussianBlur_seperable(large[1], 1, 2, true).write(DATA_DIR "/output/blurred-1.png");
 	// (gaussianBlur_seperable(large[0], 1, 2, true) + 1e-10).write(DATA_DIR "/output/blurred-0.png");
-	
+
 	return gaussianBlur_seperable(large[0], 1, 2, true) / (gaussianBlur_seperable(large[1], 1, 2, true) + 1e-10);
 }
 
 // create laplacian pyramid
-vector<FloatImage> laplacianPyramid(const FloatImage &im, int level){
+vector<FloatImage> laplacianPyramid(const FloatImage &im, int level)
+{
 
 	vector<FloatImage> gPyramid = gaussPyramid(im, level);
 	vector<FloatImage> pyramid;
 	float fact = 2;
 
-	for (int i = 0; i < level-1; i++){
-		// cout << gPyramid[i].height() << " " << gPyramid[i].width() << endl;	
-		FloatImage upSampled = upSample(gPyramid[i+1], fact);
+	for (int i = 0; i < level - 1; i++)
+	{
+		// cout << gPyramid[i].height() << " " << gPyramid[i].width() << endl;
+		FloatImage upSampled = upSample(gPyramid[i + 1], fact);
 		// upSampled.write(DATA_DIR "/output/blurred-divided.png");
 
-		if (upSampled.size() != gPyramid[i].size()){
-			
+		if (upSampled.size() != gPyramid[i].size())
+		{
+
 			FloatImage clampTrue(gPyramid[i]);
 			clampTrue.clear();
 
@@ -517,42 +537,50 @@ vector<FloatImage> laplacianPyramid(const FloatImage &im, int level){
 					}
 				}
 			}
-			
+
 			pyramid.push_back(gPyramid[i] - clampTrue);
 		}
-		
-		else pyramid.push_back(gPyramid[i] - upSampled);
+
+		else
+			pyramid.push_back(gPyramid[i] - upSampled);
 		// cout << upSampled.height() << " " << upSampled.width() << endl;
 	}
-	pyramid.push_back(gPyramid[level-1]);
+	pyramid.push_back(gPyramid[level - 1]);
 	return pyramid;
 }
 
-double signnum(double x) {
-  if (x > 0.0) return 1.0;
-  if (x < 0.0) return -1.0;
-  return x;
+double signnum(double x)
+{
+	if (x > 0.0)
+		return 1.0;
+	if (x < 0.0)
+		return -1.0;
+	return x;
 }
 
 // smooth step
-float smoothStep(float xmin, float xmax, float x){
+float smoothStep(float xmin, float xmax, float x)
+{
 	float y = (x - xmin) / (xmax - xmin);
 	y = 1 < y ? 1 : y;
 	y = 0 < y ? y : 0;
-    y = pow(y, 2) * pow((y - 2), 2);
+	y = pow(y, 2) * pow((y - 2), 2);
 	return y;
 }
 
-FloatImage fd(FloatImage x, float sigma, float alpha){
+FloatImage fd(FloatImage x, float sigma, float alpha)
+{
 	float noise = 0.01;
-    FloatImage out(x);
+	FloatImage out(x);
 	out.clear();
-	
-	for (int i = 0; i < x.size(); i++){
-		out(i) = pow(x(i),alpha);
-		if (alpha < 1.0){
+
+	for (int i = 0; i < x.size(); i++)
+	{
+		out(i) = pow(x(i), alpha);
+		if (alpha < 1.0)
+		{
 			float tau = smoothStep(noise, 2 * noise, x(i) * sigma);
-        	out(i) = tau * out(i) + (1-tau) * x(i);
+			out(i) = tau * out(i) + (1 - tau) * x(i);
 		}
 	}
 
@@ -560,12 +588,14 @@ FloatImage fd(FloatImage x, float sigma, float alpha){
 }
 
 // edge remapping
-FloatImage fe(FloatImage x, float beta){
-    return beta * x;
+FloatImage fe(FloatImage x, float beta)
+{
+	return beta * x;
 }
 
 // remapping
-FloatImage remapping(FloatImage imsub, vector<float> g0, float sigma, float alpha, float beta, int channels){
+FloatImage remapping(FloatImage imsub, vector<float> g0, float sigma, float alpha, float beta, int channels)
+{
 	FloatImage gtemp(imsub);
 	FloatImage gmap(imsub);
 	FloatImage remapped(imsub);
@@ -573,70 +603,81 @@ FloatImage remapping(FloatImage imsub, vector<float> g0, float sigma, float alph
 	FloatImage dnrm(imsub.width(), imsub.height(), 1);
 	FloatImage dsgn(imsub);
 	FloatImage unit(imsub);
-	
-	for (int z = 0; z < (int)g0.size(); z++){
-		for (int y = 0; y < imsub.sizeY(); y++){
-			for (int x = 0; x < imsub.sizeX(); x++){
-				dnrm_prev(x,y,z) = (imsub(x,y,z) - g0[z]);
+
+	for (int z = 0; z < (int)g0.size(); z++)
+	{
+		for (int y = 0; y < imsub.sizeY(); y++)
+		{
+			for (int x = 0; x < imsub.sizeX(); x++)
+			{
+				dnrm_prev(x, y, z) = (imsub(x, y, z) - g0[z]);
 				gmap(x, y, z) = g0[z];
 			}
 		}
-		
-		
 	}
 
 	FloatImage rd;
 	FloatImage re;
 
-	if (channels == 3){
+	if (channels == 3)
+	{
 
 		gtemp = dnrm_prev;
 		dnrm_prev *= dnrm_prev;
 
-		for (int y = 0; y < imsub.sizeY(); y++){
-			for (int x = 0;  x < imsub.sizeX(); x++){
-					dnrm(x, y, 0) = sqrt(dnrm_prev(x,y,0) + dnrm_prev(x,y,1) + dnrm_prev(x,y,2));
-					
+		for (int y = 0; y < imsub.sizeY(); y++)
+		{
+			for (int x = 0; x < imsub.sizeX(); x++)
+			{
+				dnrm(x, y, 0) = sqrt(dnrm_prev(x, y, 0) + dnrm_prev(x, y, 1) + dnrm_prev(x, y, 2));
 			}
 		}
 
-		for (int y = 0;  y < imsub.sizeY(); y++){
-			for (int x = 0; x < imsub.sizeX(); x++){
-				for (int z = 0; z < (int)g0.size(); z++){
+		for (int y = 0; y < imsub.sizeY(); y++)
+		{
+			for (int x = 0; x < imsub.sizeX(); x++)
+			{
+				for (int z = 0; z < (int)g0.size(); z++)
+				{
 					unit(x, y, z) = dnrm(x, y, 0) == 0 ? 0 : gtemp(x, y, z) / dnrm(x, y, 0);
 					// cout << gmap(x, y, z) + unit(x, y, z) << endl;
 				}
-					
 			}
 		}
 
-		rd = gmap + unit * sigma * fd(dnrm/sigma, sigma, alpha);
-		re = gmap + unit * (fe(dnrm-sigma, beta) + sigma);
+		rd = gmap + unit * sigma * fd(dnrm / sigma, sigma, alpha);
+		re = gmap + unit * (fe(dnrm - sigma, beta) + sigma);
 	}
-	else if (channels == 1){
+	else if (channels == 1)
+	{
 
-		for (int y = 0;  y < imsub.sizeY(); y++){
-			for (int x = 0; x < imsub.sizeX(); x++){
-				for (int z = 0; z < (int)g0.size(); z++){
+		for (int y = 0; y < imsub.sizeY(); y++)
+		{
+			for (int x = 0; x < imsub.sizeX(); x++)
+			{
+				for (int z = 0; z < (int)g0.size(); z++)
+				{
 					dsgn(x, y, z) = signnum(dnrm_prev(x, y, z));
 					dnrm(x, y, z) = abs(dnrm_prev(x, y, z));
 				}
-					
 			}
 		}
 
-		rd = gmap + dsgn * sigma * fd(dnrm/sigma, sigma, alpha);
-		re = gmap + dsgn * (fe(dnrm-sigma, beta) + sigma);
+		rd = gmap + dsgn * sigma * fd(dnrm / sigma, sigma, alpha);
+		re = gmap + dsgn * (fe(dnrm - sigma, beta) + sigma);
 	}
 
-	for (int y = 0;  y < imsub.sizeY(); y++){
-		for (int x = 0; x < imsub.sizeX(); x++){
-			for (int z = 0; z < (int)g0.size(); z++){
-			if (dnrm(x,y,0) <= sigma)
-				remapped(x,y,z) = rd(x,y,z);
-			else remapped(x,y,z) = re(x,y,z);
+	for (int y = 0; y < imsub.sizeY(); y++)
+	{
+		for (int x = 0; x < imsub.sizeX(); x++)
+		{
+			for (int z = 0; z < (int)g0.size(); z++)
+			{
+				if (dnrm(x, y, 0) <= sigma)
+					remapped(x, y, z) = rd(x, y, z);
+				else
+					remapped(x, y, z) = re(x, y, z);
 			}
-
 		}
 	}
 
@@ -644,14 +685,17 @@ FloatImage remapping(FloatImage imsub, vector<float> g0, float sigma, float alph
 }
 
 // reconstruct back image
-FloatImage reconstruct(vector<FloatImage> lPyramid){
+FloatImage reconstruct(vector<FloatImage> lPyramid)
+{
 	FloatImage upSampled;
-	for (int i = (int)lPyramid.size()-1; i > 0; i--){
+	for (int i = (int)lPyramid.size() - 1; i > 0; i--)
+	{
 		upSampled = upSample(lPyramid[i], 2);
 
-	if (upSampled.size() != lPyramid[i-1].size()){
-			
-			FloatImage clampTrue(lPyramid[i-1]);
+		if (upSampled.size() != lPyramid[i - 1].size())
+		{
+
+			FloatImage clampTrue(lPyramid[i - 1]);
 			clampTrue.clear();
 
 			for (int z = 0; z < clampTrue.channels(); z++)
@@ -666,65 +710,69 @@ FloatImage reconstruct(vector<FloatImage> lPyramid){
 				}
 			}
 
-
-		upSampled = clampTrue;
-
-	}
-	upSampled += lPyramid[i-1];
-	lPyramid[i-1] = upSampled;
+			upSampled = clampTrue;
+		}
+		upSampled += lPyramid[i - 1];
+		lPyramid[i - 1] = upSampled;
 	}
 	return upSampled;
 }
 
-FloatImage localLaplacianFilter(const FloatImage im, int levels, float sigma, float alpha, float beta, int channels){
+FloatImage localLaplacianFilter(const FloatImage im, int levels, float sigma, float alpha, float beta, int channels)
+{
 	vector<FloatImage> gPyramid = gaussPyramid(im, levels);
-	vector<FloatImage>lPyramid = gPyramid;
-		
-	for (int i = 1; i < levels; i++){
+	vector<FloatImage> lPyramid = gPyramid;
+
+	for (int i = 1; i < levels; i++)
+	{
 		int hw = 3 * pow(2, i) - 2;
 		cout << i << endl;
-		for (int y = 1; y < gPyramid[i-1].height()+1;  y++){
-			for(int x = 1; x < gPyramid[i-1].width()+1; x++){
+		for (int y = 1; y < gPyramid[i - 1].height() + 1; y++)
+		{
+			for (int x = 1; x < gPyramid[i - 1].width() + 1; x++)
+			{
 
 				// determine subregion
-            	int yf = (y - 1) * pow(2, (i - 1)) + 1;
-            	int xf = (x - 1) * pow(2, (i - 1)) + 1;
-            
-            	vector<int> yrng {max(1, yf - hw), min(im.height(), yf + hw)};
-            	vector<int> xrng {max(1, xf - hw), min(im.width(), xf + hw)};
+				int yf = (y - 1) * pow(2, (i - 1)) + 1;
+				int xf = (x - 1) * pow(2, (i - 1)) + 1;
 
-				FloatImage isubF (xrng[1]-(xrng[0]-1), yrng[1]-(yrng[0]-1), channels); // combine all channels
-				FloatImage remappedF (xrng[1]-(xrng[0]-1), yrng[1]-(yrng[0]-1), channels);
+				vector<int> yrng{max(1, yf - hw), min(im.height(), yf + hw)};
+				vector<int> xrng{max(1, xf - hw), min(im.width(), xf + hw)};
+
+				FloatImage isubF(xrng[1] - (xrng[0] - 1), yrng[1] - (yrng[0] - 1), channels); // combine all channels
+				FloatImage remappedF(xrng[1] - (xrng[0] - 1), yrng[1] - (yrng[0] - 1), channels);
 
 				vector<float> g;
 
-				for(int z = 0; z < channels; z++){ // channels to control lumi or color input
-					g.push_back(gPyramid[i-1](x-1, y-1, z));
+				for (int z = 0; z < channels; z++)
+				{ // channels to control lumi or color input
+					g.push_back(gPyramid[i - 1](x - 1, y - 1, z));
 
-					for (int yy = 0; yy < isubF.height(); yy++){
-						for (int xx = 0; xx < isubF.width(); xx++){
+					for (int yy = 0; yy < isubF.height(); yy++)
+					{
+						for (int xx = 0; xx < isubF.width(); xx++)
+						{
 
-				// 			isub(xx, yy, 0) = im(xrng[0]-1 + xx, yrng[0]-1 + yy, z);
-							isubF(xx, yy, z) = im(xrng[0]-1 + xx, yrng[0]-1 + yy, z);
+							// 			isub(xx, yy, 0) = im(xrng[0]-1 + xx, yrng[0]-1 + yy, z);
+							isubF(xx, yy, z) = im(xrng[0] - 1 + xx, yrng[0] - 1 + yy, z);
 						}
 					}
 				}
 				remappedF = remapping(isubF, g, sigma, alpha, beta, channels);
 
 				float yfc = yf - yrng[0] + 1;
-                float xfc = xf - xrng[0] + 1;
+				float xfc = xf - xrng[0] + 1;
 
-                int yfclev0 = floor((yfc-1)/pow(2,(i-1))) + 1;
-                int xfclev0 = floor((xfc-1)/pow(2,(i-1))) + 1;
+				int yfclev0 = floor((yfc - 1) / pow(2, (i - 1))) + 1;
+				int xfclev0 = floor((xfc - 1) / pow(2, (i - 1))) + 1;
 
-				vector<FloatImage> lRemap = laplacianPyramid(remappedF, i+1);
-				
-				for(int z = 0; z < channels; z++){
-					lPyramid[i-1](x-1, y-1, z) = lRemap[i-1](xfclev0-1, yfclev0-1, z);
-					
+				vector<FloatImage> lRemap = laplacianPyramid(remappedF, i + 1);
+
+				for (int z = 0; z < channels; z++)
+				{
+					lPyramid[i - 1](x - 1, y - 1, z) = lRemap[i - 1](xfclev0 - 1, yfclev0 - 1, z);
 				}
 			}
-
 		}
 	}
 

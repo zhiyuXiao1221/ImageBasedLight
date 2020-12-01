@@ -1,7 +1,6 @@
 // hdr.cpp
 // Assignment 5
 
-
 #include "hdr.h"
 #include "filtering.h"
 #include "a2.h"
@@ -182,7 +181,7 @@ float computeFactor(const FloatImage &im1, const FloatImage &w1, const FloatImag
 FloatImage makeHDR(vector<FloatImage> &imSeq, float epsilonMini, float epsilonMaxi)
 {
 	// invert gamma correction
-	for (int i = 0; i < ((int) imSeq.size()); i++)
+	for (int i = 0; i < ((int)imSeq.size()); i++)
 		imSeq[i] = changeGamma(imSeq[i], 1.0 / 2.2, 1.0f);
 
 	vector<float> k(1, 1);
@@ -191,10 +190,10 @@ FloatImage makeHDR(vector<FloatImage> &imSeq, float epsilonMini, float epsilonMa
 	FloatImage w1 = wTotal;
 	FloatImage w2 = wTotal;
 
-	for (int i = 0; i < ((int) imSeq.size()) - 1; i++)
+	for (int i = 0; i < ((int)imSeq.size()) - 1; i++)
 	{
 		bool first = (i == 0);
-		bool last = (i == ((int) imSeq.size()) - 2);
+		bool last = (i == ((int)imSeq.size()) - 2);
 		w1 = computeWeight(imSeq[i], epsilonMini, first ? 1.0 : epsilonMaxi);
 		w2 = computeWeight(imSeq[i + 1], last ? 0.0 : epsilonMini, epsilonMaxi);
 
@@ -300,9 +299,8 @@ FloatImage getRadiance(vector<FloatImage> &imSeq, vector<float> exposures, vecto
  //                      TONE MAPPING                        //
  *************************************************************/
 
-
 // Tone map an hdr image
-FloatImage toneMap(const FloatImage &im, float targetBase, float detailAmp, bool useBila, float sigmaRange)
+FloatImage toneMap(const FloatImage &im, float targetBase, float detailAmp, bool useBila, bool useFast, float sigmaRange)
 {
 	// initiate baselumi. This is Unnecessary but otherwise have issues with scope?
 	FloatImage baselumi(im.width(), im.height(), im.channels());
@@ -315,14 +313,22 @@ FloatImage toneMap(const FloatImage &im, float targetBase, float detailAmp, bool
 
 	// compute the base
 	int maxdim = max(loglumi.width(), loglumi.height());
-	float sigma = ((float) maxdim) / 50;
+	float sigma = ((float)maxdim) / 50;
 
 	if (useBila)
-	{   // bilateral filter
-		baselumi = bilateral(loglumi, sigmaRange, sigma);
+	{ // bilateral filter
+		if (useFast)
+		{
+			baselumi = fastBilateral(loglumi, 0.4, sigma, 3, 10, 0.05);
+		}
+		else
+		{
+			cout << "!" << endl;
+			baselumi = bilateral(loglumi, sigmaRange, sigma);
+		}
 	}
 	else
-	{   // normal gaussian filter
+	{ // normal gaussian filter
 		baselumi = gaussianBlur_seperable(loglumi, sigma);
 		// float levels = 3;
 		// sigma = log(2.5);

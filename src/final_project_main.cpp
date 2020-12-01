@@ -110,15 +110,21 @@ void testMakeNaiveHdr_Room()
 	for (int i = 1; i <= nImages; i++)
 	{
 		ostringstream ss;
-		ss << DATA_DIR "/input/final_project/indoor/scene1/Angle2/sphere_" << i << ".jpg";
+		ss << DATA_DIR "/input/final_project/indoor/imgs/room-" << i << ".png";
 		string filename = ss.str();
 		imSeq.push_back(FloatImage(filename));
 	}
 
 	// generate an hdr image
-	FloatImage hdr = makeHDR(imSeq, 0.1, 0.9);
+	FloatImage hdr = makeHDR(imSeq, 0.1, 0.99);
 	// save out HDR image
 	hdr.write(DATA_DIR "/output/room3-out.hdr");
+	// tone map with fast bilaterial
+	Timer timer;
+	timer.reset();
+	//toneMap(hdr, 20, 1.5, true, true, 0.1).write(DATA_DIR "/output/room-fastbilateral.png");
+	toneMap(hdr, 100, 1.5, true, true, 0.05).write(DATA_DIR "/output/room-fastbilateral.png");
+	printf("Bilateral took %3.5f seconds\n", timer.elapsed() / 1000.f);
 }
 
 // test Harris Corner Detection
@@ -193,9 +199,11 @@ int main()
 	//testPanoramicTrans();
 	// testCompositing();
 	// testFastBilateral();
+	//testCompositing();
+	//testFastBilateral();
 	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
-	testCornerDetection();
+	// testCornerDetection();
 	// testCRF();
 	// testLaplacian();
 }
