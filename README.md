@@ -7,6 +7,7 @@ The purpose of this project is to investigate the application of HDR imaging in 
 2. Recover HDR image from LDR images with camera response curve calibration
 3. Tone-mapping with fast bilateral filter and local Laplacian filter
 4. Rendered IBL scene in Maya and custome OpenGL implementation
+5. Marker based corner detection for rendering reference frame
 
 ## Prerequisite
 
@@ -40,6 +41,12 @@ vector<VectorXf> calibrateCRF(vector<FloatImage> &scaledSeq, vector<float> &expo
     
 //HDR merging
 FloatImage getRadiance(vector<FloatImage> &imSeq, vector<float> exposures, vector<VectorXf> crfs, bool robertson)
+
+// compositing
+FloatImage composite(const FloatImage &scene, const FloatImage &mask, const FloatImage &withObj, const FloatImage &withoutObj, float c);
+
+// corner detection
+vector<vector<int>> detectCorners(const FloatImage &im, float threshold, int windowSize, bool useGaussianBlur, bool clamp);
 ```
 
 ## Problems and Challenges
@@ -47,6 +54,9 @@ FloatImage getRadiance(vector<FloatImage> &imSeq, vector<float> exposures, vecto
 1. Reflections on chrome ball are not very clear when cropped out as we took the LDR images from a far distance. The good news is that the IBL results seem to be unaffected.
 2. Fast bilateral filtering may fail to run when the image is very large due to memory issues.
 3. Local Laplacian filter may take a very long time and memory to run for larger images.
+4. Edges of diffuse virtual objects composited into scene has color artifacts.
+5. OpenGL libraries and code proved to be difficult to merge into main codebase. Additional repository with standalone rendering code can be found [here](https://github.com/ealitt/Scene-Rendering/tree/master).
+6. Corner detection has not been tested with real life markers, only on ideal virtual markers. Further tuning for regional searches in an images would be necessary.
 
 ## Additional Materials
 
@@ -60,8 +70,8 @@ Detailed description of some implementations as well as the validation of result
 4. [Rendering Synthetic Objects into Real Scenes, by Paul Debevec, Siggraph 1998](http://www.pauldebevec.com/Research/IBL/)
 5. [Recovering High Dynamic Range Radiance Maps from Photographs, by Paul Debevec, Siggraph 1997](http://www.pauldebevec.com/Research/HDR/)
 6. [Local Laplacian Filters: Edge-aware Image Processing with a Laplacian Pyramid](https://people.csail.mit.edu/sparis/publi/2015/cacm/Paris_15_Local_Laplacian_Filters.pdf)
-7. [Harris Corner Detection](https://www.pauldebevec.com/Research/IBL/debevec-siggraph98.pdff)
+7. [Harris Corner Detection](https://docs.opencv.org/master/dc/d0d/tutorial_py_features_harris.html)
 8. [Diffuse irradiance](https://learnopengl.com/PBR/IBL/Diffuse-irradiance)
-
+9. [OpenGL Rendering](https://learnopengl.com/PBR/IBL/Specular-IBL)
 
 
