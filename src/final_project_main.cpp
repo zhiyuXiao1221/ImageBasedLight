@@ -4,6 +4,7 @@
 #include "a6.h"
 #include "utils.h"
 #include "filtering.h"
+#include "corner_detect.h"
 #include <sstream>
 
 using namespace std;
@@ -21,15 +22,15 @@ void testPanoramicTrans()
 
 void testCompositing()
 {
-	const FloatImage scene(DATA_DIR "/input/final_project/differentialRendering/1/bg.png");
-	const FloatImage mask(DATA_DIR "/input/final_project/differentialRendering/1/mask.png");
-	const FloatImage withObj(DATA_DIR "/input/final_project/differentialRendering/1/withObjects.png");
-	const FloatImage withoutObj(DATA_DIR "/input/final_project/differentialRendering/1/withoughtObjts.png");
+	const FloatImage scene(DATA_DIR "/input/final_project/differentialRendering/3/scene.png");
+	const FloatImage mask(DATA_DIR "/input/final_project/differentialRendering/3/mask.png");
+	const FloatImage withObj(DATA_DIR "/input/final_project/differentialRendering/3/withObjects.png");
+	const FloatImage withoutObj(DATA_DIR "/input/final_project/differentialRendering/3/withoutObjects.png");
 
 	// create composite using default c value
 	// c value used for changing shadows and reflection values
 	FloatImage output = composite(scene, mask, withObj, withoutObj, 1.0);
-	output.write(DATA_DIR "/output/Composite-default.png");
+	output.write(DATA_DIR "/output/Composite-default-2.png");
 
 	// create composite images with varying c values
 	// images are generated in 0.5 c value step increments
@@ -126,6 +127,26 @@ void testMakeNaiveHdr_Room()
 	printf("Bilateral took %3.5f seconds\n", timer.elapsed() / 1000.f);
 }
 
+// test Harris Corner Detection
+void testCornerDetection() {
+	// image of real life scene 
+	const FloatImage scene(DATA_DIR "/input/final_project/corner_detection/scene_with_checkerboard.jpg");
+
+	// settings for tuning corner detectors
+	int windowSize = 2;
+	float threshold = 100;
+	vector<vector<int>> corners = detectCorners(scene, threshold, windowSize, false, true);
+
+	// mark in red where corners are detected
+	FloatImage output = highlightCorners(scene, corners);
+	output.write(DATA_DIR "/output/corner_detection/corner_detect.png");
+	
+	// average nearby detected corners within a given range
+	int range = 10;
+	vector<vector<int>> avgCorners = avgLocalPoints(corners, range);
+	FloatImage outputAvgLocal = highlightCorners(scene, avgCorners);
+	outputAvgLocal.write(DATA_DIR "/output/corner_detection/corner_detect_avg_local_pts.png");
+  
 // test CRF calculation
 void testCRF(){
 	int nImages = 8;
@@ -171,16 +192,18 @@ void testLaplacian(){
 	// }
 
 	// localLaplacianFilter(im, levels, sigma, alpha, beta, channels);
-	
 }
 
 int main()
 {
 	//testPanoramicTrans();
+	// testCompositing();
+	// testFastBilateral();
 	//testCompositing();
 	//testFastBilateral();
 	//CompareTwoBilateral();
 	//testMakeNaiveHdr_Room();
+	// testCornerDetection();
 	// testCRF();
 	// testLaplacian();
 }
