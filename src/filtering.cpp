@@ -275,7 +275,7 @@ FloatImage fastBilateral(const FloatImage &im, float sigmaRange, float sigmaDoma
 	//Step1:Downsample
 	int width = im.width();
 	int height = im.height();
-	int kernelSize = int(ceil(truncateDomain * sigmaDomain));
+	int kernelSize = int(ceil(truncateDomain));
 	float sigma_r = sigmaRange / samplingR;
 	float sigma_s = sigmaDomain / samplingD;
 	int padding_xy = (kernelSize - 1) / 2;
@@ -369,6 +369,20 @@ FloatImage fastBilateral(const FloatImage &im, float sigmaRange, float sigmaDoma
 		}
 
 		//Step 3:triliner interpolation
+		// for (int i = 0; i < width; i++)
+		// {
+		// 	for (int j = 0; j < height; j++)
+		// 	{
+		// 		float Z = im(i, j, channel) - im_Min;
+		// 		float x = i / samplingD + padding_xy;
+		// 		float y = j / samplingD + padding_xy;
+		// 		float z = Z / samplingR + padding_z;
+		// 		float IW = trilinear_interpolation(iw, x, y, z);
+		// 		float W = trilinear_interpolation(w, x, y, z);
+		// 		output(i, j, channel) = IW / (W + exp(-10));
+		// 	}
+		// }
+		// don't use trilinear interpolation
 		for (int i = 0; i < width; i++)
 		{
 			for (int j = 0; j < height; j++)
