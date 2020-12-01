@@ -180,11 +180,7 @@ int main()
 	//testCompositing();
 	//testFastBilateral();
 	//CompareTwoBilateral();
-<<<<<<< HEAD
-	testMakeNaiveHdr_Room();
-=======
 	//testMakeNaiveHdr_Room();
 	// testCRF();
 	// testLaplacian();
->>>>>>> 2d5cd6f551b52d9d8ac838a737652ba99d557abd
 }
