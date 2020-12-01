@@ -1,1 +1,2 @@
-It's temporarily empty
+## Final Project - Image-based Lighting
+> Group 5

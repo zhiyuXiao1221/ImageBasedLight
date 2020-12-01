@@ -7,6 +7,7 @@ add_subdirectory(src/ext)
 include_directories(${PROJECT_SOURCE_DIR}/src
                     ${PROJECT_SOURCE_DIR}/src/ext
                     ${PROJECT_SOURCE_DIR}/src/ext/stb
+                    ${PROJECT_SOURCE_DIR}/eigen
 )
 
 set(ext_stb_srcs
@@ -32,11 +33,14 @@ add_library(common_lib STATIC
 )
 SOURCE_GROUP("src\\ext\\stb" FILES ${ext_stb_srcs})
 
-set(final_project_srcs    src/final_project_main.cpp src/hdr.cpp src/filtering.cpp src/a2.cpp src/panoramicTrans.cpp)    # final_project
+set(final_project_srcs    src/final_project_main.cpp src/hdr.cpp src/filtering.cpp src/a2.cpp src/a6.cpp src/panoramicTrans.cpp)    # final_project
 add_executable(final_project ${final_project_srcs})                                               # final_project
 target_link_libraries(final_project common_lib)                                        # final_project
 SOURCE_GROUP("src" FILES ${final_project_srcs})                                        # final_project
                                                                             # final_project
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+target_link_libraries (final_project Eigen3::Eigen)
+
 # Create the output data directory
-add_custom_command(TARGET final_project POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/data/output") # a5
+add_custom_command(TARGET final_project POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/data/output")
