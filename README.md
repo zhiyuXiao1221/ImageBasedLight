@@ -1,6 +1,8 @@
 # Final Project - Image-based Lighting
 The purpose of this project is to investigate the application of HDR imaging in image-based lighting (IBL) using environment maps, specifically in relighting virtual objects.
-[The pdf report link :](https://github.com/zhiyuXiao1221/ImageBasedLight/blob/main/CS273%20Final%20Project.pdf)
+
+
+[The pdf presentation link](https://github.com/zhiyuXiao1221/ImageBasedLight/blob/main/CS273%20Final%20Project.pdf)
 ## Main Tasks
 
 1. Captured LDR images of chrome sphere for IBL
